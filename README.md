@@ -2,8 +2,6 @@
 
 A responsive, frontend-only web prototype for the **Student Online Examination / Assessment Management System**, built for our Software Engineering Lab project based on the Version 1.0 SRS.
 
-**Live Demo** (hosted by github pages) :https://yashwantttt.github.io/Student-Online-Examanation-Monitoring-system/
-
 > **Note:** This is a static UI prototype using mock data and client-side JavaScript for view switching and basic interactions. No backend or database is connected yet.
 
 ## Features Implemented (UI)
