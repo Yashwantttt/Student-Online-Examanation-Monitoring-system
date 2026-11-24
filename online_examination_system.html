@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Online Examination System</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Utility class to hide views */
+        .hidden-view {
+            display: none !important;
+        }
+        /* Custom scrollbar for tables */
+        .table-container {
+            scrollbar-width: thin;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navigation Bar (Hidden on Login) -->
+    <nav id="navbar" class="bg-blue-700 text-white shadow-md hidden-view">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center font-bold text-xl tracking-wide">
+                    <i class="fa-solid fa-graduation-cap mr-2"></i> ExamSys
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="nav-username" class="text-sm font-medium">Welcome, User</span>
+                    <span id="nav-role" class="px-2 py-1 bg-blue-800 rounded text-xs font-semibold uppercase tracking-wider">Role</span>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded text-sm font-medium transition duration-150 flex items-center">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col items-center justify-center w-full p-4 md:p-6 lg:p-8">
+
+        <!-- ================= LOGIN VIEW ================= -->
+        <div id="view-login" class="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="bg-blue-600 p-6 text-center text-white">
+                <i class="fa-solid fa-laptop-code text-4xl mb-3"></i>
+                <h2 class="text-2xl font-bold">Online Exam System</h2>
+                <p class="text-blue-100 text-sm mt-1">Sign in to your account</p>
+            </div>
+            <div class="p-8">
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="login-username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter password (any)">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="login-role" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="Student">Student</option>
+                            <option value="Faculty">Faculty</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md">
+                        Login to Dashboard
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================= STUDENT DASHBOARD ================= -->
+        <div id="view-student" class="w-full max-w-6xl hidden-view">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Student Dashboard</h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Available Exams -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i> Available Examinations</h2>
+                        <div class="space-y-4" id="student-exam-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results & Marks -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center"><i class="fa-solid fa-chart-line text-green-500 mr-2"></i> My Results</h2>
+                        <ul class="space-y-3" id="student-results-list">
+                            <li class="p-3 bg-gray-50 border rounded-lg flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium text-sm">Software Engineering Core</p>
+                                    <p class="text-xs text-gray-500">Attempted: 10th Oct 2026</p>
+                                </div>
+                                <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">85 / 100</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= EXAM INTERFACE (STUDENT) ================= -->
+        <div id="view-exam" class="w-full max-w-4xl hidden-view bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <!-- Exam Header -->
+            <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold" id="active-exam-title">Software Engineering Final</h2>
+                    <p class="text-sm text-gray-300">Attempt in progress</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-mono font-bold" id="exam-timer">59:59</div>
+                    <span class="text-xs text-gray-400">Time Remaining</span>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="p-6 md:p-10 min-h-[300px]">
+                <div class="mb-6 flex justify-between items-center">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-200">
+                        Question <span id="current-q-num">1</span> of <span id="total-q-num">5</span>
+                    </span>
+                    <span class="text-sm text-gray-500 font-medium">Marks: 1</span>
+                </div>
+
+                <h3 class="text-xl font-medium text-gray-800 mb-6" id="question-text">What is the primary purpose of an SRS document?</h3>
+                
+                <div class="space-y-3" id="options-container">
+                    <!-- Options populated by JS -->
+                </div>
+            </div>
+
+            <!-- Exam Controls -->
+            <div class="bg-gray-50 border-t p-4 flex justify-between items-center">
+                <button onclick="prevQuestion()" id="btn-prev" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition disabled:opacity-50">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Previous
+                </button>
+                <button onclick="submitExam()" id="btn-submit" class="hidden px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded shadow-md transition">
+                    Submit Exam <i class="fa-solid fa-check ml-1"></i>
+                </button>
+                <button onclick="nextQuestion()" id="btn-next" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition shadow-sm">
+                    Next <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= FACULTY DASHBOARD ================= -->
+        <div id="view-faculty" class="w-full max-w-6xl hidden-view">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Faculty Dashboard</h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Create Exam Form -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2"><i class="fa-solid fa-file-circle-plus text-purple-500 mr-2"></i> Create New Exam</h2>
+                    <form onsubmit="handleCreateExam(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Exam Title</label>
+                            <input type="text" id="new-exam-title" required class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Mins)</label>
+                                <input type="number" id="new-exam-duration" required min="10" class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                                <input type="number" id="new-exam-marks" required min="1" class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded transition shadow">
+                            Create Exam
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Add Question Form -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2"><i class="fa-solid fa-database text-orange-500 mr-2"></i> Question Bank Manager</h2>
+                    <form onsubmit="handleAddQuestion(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
+                            <textarea id="q-text" required rows="2" class="w-full p-2 border rounded focus:ring-2 focus:ring-orange-500 text-sm"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="q-optA" placeholder="Option A" required class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-orange-500">
+                            <input type="text" id="q-optB" placeholder="Option B" required class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-orange-500">
+                            <input type="text" id="q-optC" placeholder="Option C" required class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-orange-500">
+                            <input type="text" id="q-optD" placeholder="Option D" required class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 mt-2">Correct Option</label>
+                            <select id="q-correct" class="w-full p-2 border rounded focus:ring-2 focus:ring-orange-500">
+                                <option value="A">Option A</option>
+                                <option value="B">Option B</option>
+                                <option value="C">Option C</option>
+                                <option value="D">Option D</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded transition shadow">
+                            Add Question to Bank
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Student Performance Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 table-container overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2"><i class="fa-solid fa-users text-blue-500 mr-2"></i> Student Attempts & Performance</h2>
+                <table class="min-w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+                            <th class="p-3 border-b font-medium">Student ID</th>
+                            <th class="p-3 border-b font-medium">Exam Title</th>
+                            <th class="p-3 border-b font-medium">Date Attempted</th>
+                            <th class="p-3 border-b font-medium">Score</th>
+                            <th class="p-3 border-b font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm" id="faculty-performance-table">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= ADMIN DASHBOARD ================= -->
+        <div id="view-admin" class="w-full max-w-6xl hidden-view">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Administrator Dashboard</h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Add User Form -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-1 h-fit">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2"><i class="fa-solid fa-user-plus text-teal-500 mr-2"></i> Add / Update User</h2>
+                    <form onsubmit="handleAddUser(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                            <input type="text" id="admin-username" required class="w-full p-2 border rounded focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                            <select id="admin-role" class="w-full p-2 border rounded focus:ring-2 focus:ring-teal-500">
+                                <option value="Student">Student</option>
+                                <option value="Faculty">Faculty</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Initial Password</label>
+                            <input type="text" id="admin-password" required value="pass123" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 rounded transition shadow">
+                            Save User
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Registered Users Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2 table-container overflow-x-auto">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2"><i class="fa-solid fa-users-gear text-indigo-500 mr-2"></i> Registered Users</h2>
+                    <table class="min-w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+                                <th class="p-3 border-b font-medium">Username</th>
+                                <th class="p-3 border-b font-medium">Role</th>
+                                <th class="p-3 border-b font-medium">Status</th>
+                                <th class="p-3 border-b font-medium text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm" id="admin-users-table">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Notification Modal / Message Box -->
+        <div id="message-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden-view">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center transform transition-all scale-100">
+                <div id="message-icon" class="text-4xl mb-4 text-blue-500"><i class="fa-solid fa-circle-info"></i></div>
+                <h3 id="message-title" class="text-lg font-bold text-gray-900 mb-2">Notification</h3>
+                <p id="message-body" class="text-sm text-gray-600 mb-6">Action completed successfully.</p>
+                <button onclick="closeMessage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded">OK</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Mock Data Store ---
+        let users = [
+            { username: 'yashvee', role: 'Student', status: 'Active' },
+            { username: 'yashvi', role: 'Faculty', status: 'Active' },
+            { username: 'yashwant', role: 'Admin', status: 'Active' }
+        ];
+
+        let exams = [
+            { id: 1, title: 'Software Engineering Fundamentals', duration: 60, marks: 50, status: 'Published' },
+            { id: 2, title: 'Database Management Systems', duration: 90, marks: 100, status: 'Published' }
+        ];
+
+        let attempts = [
+            { student: 'yashvee', examTitle: 'Software Engineering Fundamentals', date: '2026-10-15', score: '45/50', status: 'Passed' },
+            { student: 'student_john', examTitle: 'Database Management Systems', date: '2026-10-14', score: '30/100', status: 'Failed' }
+        ];
+
+        // Sample Questions for Exam Interface
+        const sampleQuestions = [
+            { q: "What does SRS stand for in Software Engineering?", options: ["Software Requirement Specification", "System Requirement Specification", "Standard Requirement Specification", "None of the above"], correct: 0 },
+            { q: "Which model is known as the classic life cycle model?", options: ["Spiral Model", "Waterfall Model", "Agile Model", "V-Model"], correct: 1 },
+            { q: "Which phase takes the maximum effort in the software development life cycle?", options: ["Design", "Coding", "Testing", "Maintenance"], correct: 3 }
+        ];
+
+        // --- State Management ---
+        let currentUser = null;
+        let currentQuestionIndex = 0;
+        let selectedAnswers = new Array(sampleQuestions.length).fill(null);
+        let timerInterval;
+
+        // --- Core UI Functions ---
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('main > div').forEach(div => {
+                if (div.id.startsWith('view-')) div.classList.add('hidden-view');
+            });
+            // Show target view
+            document.getElementById('view-' + viewId).classList.remove('hidden-view');
+
+            // Manage Navbar visibility
+            const nav = document.getElementById('navbar');
+            if (viewId === 'login') {
+                nav.classList.add('hidden-view');
+            } else {
+                nav.classList.remove('hidden-view');
+                document.getElementById('nav-username').textContent = 'Welcome, ' + currentUser.username;
+                document.getElementById('nav-role').textContent = currentUser.role;
+            }
+        }
+
+        function showMessage(title, body, type = 'info') {
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-body').textContent = body;
+            
+            const icon = document.getElementById('message-icon');
+            if (type === 'success') icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>';
+            else if (type === 'error') icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-red-500"></i>';
+            else icon.innerHTML = '<i class="fa-solid fa-circle-info text-blue-500"></i>';
+
+            document.getElementById('message-modal').classList.remove('hidden-view');
+        }
+
+        function closeMessage() {
+            document.getElementById('message-modal').classList.add('hidden-view');
+        }
+
+        // --- Authentication ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value;
+            const role = document.getElementById('login-role').value;
+            
+            // Mock authentication success
+            currentUser = { username: user, role: role };
+            document.getElementById('login-form').reset();
+
+            // Route to correct dashboard
+            if (role === 'Student') {
+                renderStudentExams();
+                showView('student');
+            } else if (role === 'Faculty') {
+                renderFacultyAttempts();
+                showView('faculty');
+            } else if (role === 'Admin') {
+                renderAdminUsers();
+                showView('admin');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            clearInterval(timerInterval);
+            showView('login');
+        }
+
+        // --- Student Functions ---
+        function renderStudentExams() {
+            const list = document.getElementById('student-exam-list');
+            list.innerHTML = '';
+            exams.forEach(ex => {
+                list.innerHTML += `
+                    <div class="border rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-md transition">
+                        <div>
+                            <h3 class="font-bold text-gray-800">${ex.title}</h3>
+                            <p class="text-sm text-gray-500"><i class="fa-regular fa-clock mr-1"></i> ${ex.duration} Mins &bull; <i class="fa-solid fa-award mr-1"></i> ${ex.marks} Marks</p>
+                        </div>
+                        <button onclick="startExam(${ex.id})" class="mt-3 md:mt-0 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white font-medium rounded transition">
+                            Attempt Exam
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function startExam(examId) {
+            // Setup Exam UI
+            const exam = exams.find(e => e.id === examId);
+            document.getElementById('active-exam-title').textContent = exam.title;
+            document.getElementById('total-q-num').textContent = sampleQuestions.length;
+            currentQuestionIndex = 0;
+            selectedAnswers.fill(null);
+            
+            // Start Mock Timer
+            let timeLeft = exam.duration * 60;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                let s = (timeLeft % 60).toString().padStart(2, '0');
+                document.getElementById('exam-timer').textContent = `${m}:${s}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitExam();
+                }
+            }, 1000);
+
+            loadQuestion();
+            showView('exam');
+        }
+
+        function loadQuestion() {
+            const q = sampleQuestions[currentQuestionIndex];
+            document.getElementById('current-q-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('question-text').textContent = q.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const isChecked = selectedAnswers[currentQuestionIndex] === index ? 'checked' : '';
+                const optId = `opt-${index}`;
+                optionsContainer.innerHTML += `
+                    <label for="${optId}" class="block p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition ${isChecked ? 'bg-blue-50 border-blue-400' : 'bg-white'}">
+                        <div class="flex items-center">
+                            <input type="radio" id="${optId}" name="exam-option" value="${index}" ${isChecked} onchange="selectOption(${index})" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                            <span class="ml-3 text-gray-700 font-medium">${opt}</span>
+                        </div>
+                    </label>
+                `;
+            });
+
+            // Handle button visibility
+            document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+            
+            if (currentQuestionIndex === sampleQuestions.length - 1) {
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('btn-submit').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('btn-submit').classList.add('hidden');
+            }
+        }
+
+        function selectOption(index) {
+            selectedAnswers[currentQuestionIndex] = index;
+            loadQuestion(); // Re-render to show selection styling
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < sampleQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        }
+
+        function submitExam() {
+            clearInterval(timerInterval);
+            // Calculate Mock Score
+            let score = 0;
+            selectedAnswers.forEach((ans, idx) => {
+                if (ans === sampleQuestions[idx].correct) score++;
+            });
+            
+            let total = sampleQuestions.length;
+            let percentage = (score / total) * 100;
+            
+            // Add to results
+            const resultsList = document.getElementById('student-results-list');
+            const resultHtml = `
+                <li class="p-3 bg-gray-50 border rounded-lg flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-sm">${document.getElementById('active-exam-title').textContent}</p>
+                        <p class="text-xs text-gray-500">Attempted: Just Now</p>
+                    </div>
+                    <span class="${percentage >= 50 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} text-xs font-bold px-2 py-1 rounded">${score} / ${total}</span>
+                </li>
+            `;
+            resultsList.innerHTML = resultHtml + resultsList.innerHTML;
+
+            showMessage('Exam Submitted', `You have successfully submitted the exam. You scored ${score} out of ${total}.`, 'success');
+            showView('student');
+        }
+
+        // --- Faculty Functions ---
+        function handleCreateExam(e) {
+            e.preventDefault();
+            const title = document.getElementById('new-exam-title').value;
+            const duration = document.getElementById('new-exam-duration').value;
+            const marks = document.getElementById('new-exam-marks').value;
+            
+            exams.push({
+                id: exams.length + 1,
+                title: title,
+                duration: duration,
+                marks: marks,
+                status: 'Draft'
+            });
+            
+            e.target.reset();
+            showMessage('Exam Created', `Exam "${title}" has been successfully added to the system.`, 'success');
+        }
+
+        function handleAddQuestion(e) {
+            e.preventDefault();
+            e.target.reset();
+            showMessage('Question Added', 'The question has been added to the question bank.', 'success');
+        }
+
+        function renderFacultyAttempts() {
+            const tbody = document.getElementById('faculty-performance-table');
+            tbody.innerHTML = '';
+            attempts.forEach(att => {
+                const statusColor = att.status === 'Passed' ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3 font-medium text-gray-800">${att.student}</td>
+                        <td class="p-3 text-gray-600">${att.examTitle}</td>
+                        <td class="p-3 text-gray-500">${att.date}</td>
+                        <td class="p-3 font-semibold">${att.score}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${statusColor}">${att.status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- Admin Functions ---
+        function renderAdminUsers() {
+            const tbody = document.getElementById('admin-users-table');
+            tbody.innerHTML = '';
+            users.forEach((u, i) => {
+                const roleColors = { 'Student': 'bg-blue-100 text-blue-800', 'Faculty': 'bg-purple-100 text-purple-800', 'Admin': 'bg-red-100 text-red-800' };
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3 font-medium text-gray-800"><i class="fa-solid fa-user-circle text-gray-400 mr-2"></i>${u.username}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-semibold ${roleColors[u.role]}">${u.role}</span></td>
+                        <td class="p-3"><span class="text-green-600 font-medium"><i class="fa-solid fa-check-circle mr-1"></i>${u.status}</span></td>
+                        <td class="p-3 text-center">
+                            <button onclick="removeUser(${i})" class="text-red-500 hover:text-red-700 transition" title="Remove User"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleAddUser(e) {
+            e.preventDefault();
+            const username = document.getElementById('admin-username').value;
+            const role = document.getElementById('admin-role').value;
+            
+            // Check if exists
+            if(users.find(u => u.username === username)) {
+                showMessage('Error', 'User already exists!', 'error');
+                return;
+            }
+
+            users.push({ username, role, status: 'Active' });
+            renderAdminUsers();
+            e.target.reset();
+            showMessage('User Added', `User ${username} registered successfully as ${role}.`, 'success');
+        }
+
+        function removeUser(index) {
+            users.splice(index, 1);
+            renderAdminUsers();
+        }
+
+        // Initialize state
+        showView('login');
+
+    </script>
+</body>
+</html>
